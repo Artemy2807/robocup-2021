@@ -21,11 +21,16 @@ void* loop_fnc(void* ptr) {
         
         if(!(hold)) {
             signs = system.signs.read();
-            Sign sign = *std::min_element(signs.begin(), signs.end(), 
+            
+            Sign sign;
+            sign_t sign_code = none_s;
+            if(!signs.empty()) {
+                sign = *std::min_element(signs.begin(), signs.end(), 
                                         [](const Sign& a, const Sign& b){
                                             return ((int)a.sign_ < (int)b.sign_ ? true : false);
                                         });
-            sign_t sign_code = sign.sign_;
+                sign_code = sign.sign_;
+            }
             
             if(sign_code == tr_red_s || sign_code == tr_yellow_s || sign_code == tr_yellowred_s)
                 sign_code = tr_red_s;
@@ -47,7 +52,7 @@ void* loop_fnc(void* ptr) {
             switch(sign_code) {
                 case stop_s:
                 {
-                    holders.push_back(Holder(base_speed, sign.distance_, true));
+                    //holders.push_back(Holder(base_speed, sign.distance_, true));
                     holders.push_back(Holder(0, base_reaction_time, false));
                     break;
                 }
@@ -63,22 +68,26 @@ void* loop_fnc(void* ptr) {
                 }
             }
         }else{
-            Holder& holder = holders.front();
-            if(holder.init_) {
-                timer_reaction.start();
-                distance_prev = engine.distance_;
-                holder.init_ = false;
-            }
-            
-            timer_reaction.stop();
-            if((!(holder.toggle_) && timer_reaction.millis() >= holder.thr_) || 
-                (holder.toggle_ && (engine.distance_ - distance_prev) >= holder.thr_))
-                holders.erase(holders.begin());
-            else engine.speed_ = holder.speed_;
+            if(!(holders.empty())) {
+                Holder& holder = holders.front();
+                if(holder.init_) {
+                    timer_reaction.start();
+                    distance_prev = engine.distance_;
+                    holder.init_ = false;
+                }
                 
-            if(holders.empty())
+                timer_reaction.stop();
+                if((!(holder.toggle_) && timer_reaction.millis() >= holder.thr_) || 
+                    (holder.toggle_ && (engine.distance_ - distance_prev) >= holder.thr_)) {
+                    holders.erase(holders.begin());
+                }else {
+                    engine.speed_ = holder.speed_;
+                }
+            }else
                 hold = false;
         }
+        
+        std::cout << (int)engine.speed_ << std::endl;
         
         system.engine.write(engine);
         usleep(10000);

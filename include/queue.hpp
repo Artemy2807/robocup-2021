@@ -85,7 +85,10 @@ public:
             pthread_mutex_lock(&(lock_));
             cur_obj = obj_;
             pthread_mutex_unlock(&(lock_));
-            if((cur_obj == NULL || old_obj == cur_obj) || count < 100) {
+            if(count >= 100)
+                break;
+            
+            if(cur_obj == NULL || old_obj == cur_obj) {
                 usleep(1000);
                 count++;
             }else {

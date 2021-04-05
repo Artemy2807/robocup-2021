@@ -12,7 +12,7 @@ void* arduino_fnc(void* ptr) {
     
     i2c::I2C controller;
     i2c::Device device_i2c = system.device_i2c.read();
-	if (!(controller.open(device_i2c))) 
+	if (!(controller.open(device_i2c)))
 		return nullptr;
     
     union {
@@ -28,7 +28,8 @@ void* arduino_fnc(void* ptr) {
         message[0] = engine.angle_;
         message[1] = engine.speed_;
         message[2] = engine.direction_;
-        controller.write((void*)(&message[0]), 3);
+        if(controller.write((void*)(&message[0]), 3) < 0)
+            break;
         
         if(controller.read((void*)(&ld.data_l_[0]), sizeof(ld.data_l_))) {
 

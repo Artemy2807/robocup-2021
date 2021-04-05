@@ -10,21 +10,21 @@ namespace i2c {
 
 
         if((fd_ = ::open(device_.filename_, O_RDWR)) < 0) {
-            LOG(ERROR) << "Can not access to the i2c adapter " << device_.filename_ << "\n"; 
+            LOG(ERROR) << "Can not access to the i2c adapter.\n";
             return false;
         }
 
         if(ioctl(fd_, I2C_SLAVE, device_.addr_) < 0) {
-            LOG(ERROR) << "Can not opened the slave device " << std::hex << std::uppercase << device_.addr_ << "\n";
+            LOG(ERROR) << "Can not opened the slave device.\n";
             return false;
         }
         
-        LOG(NOTICE) << "Connected to the i2c slave device " << std::hex << std::uppercase << device_.addr_ << "\n";
+        LOG(NOTICE) << "Connected to the i2c slave device.\n";
         return true;
     }
     
     void I2C::close() {
-        LOG(NOTICE) << "Close connection with i2c device " << std::hex << std::uppercase << device_.addr_ << "\n";
+        LOG(NOTICE) << "Close connection with i2c device.\n";
         ::close(fd_);
     }
 
@@ -35,10 +35,8 @@ namespace i2c {
     ssize_t I2C::write(void* transmitter, size_t size) {
         ssize_t size_ = 0;
 
-        if((size_ = ::write(fd_, transmitter, size)) < 0) {
+        if((size_ = ::write(fd_, transmitter, size)) < 0)
             LOG(WARNING) << "Can not send data to the slave device.\n";
-            close();
-        }
 
         return size_;
     }

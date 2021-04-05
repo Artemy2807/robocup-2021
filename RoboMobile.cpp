@@ -14,8 +14,8 @@ int main() {
 	pthread_t capture_thr;
 	pthread_create(&capture_thr, nullptr, capture_fnc, &system);
     
-    pthread_t arduino_thr;
-	pthread_create(&arduino_thr, NULL, arduino_fnc, &system);
+    //pthread_t arduino_thr;
+	//pthread_create(&arduino_thr, NULL, arduino_fnc, &system);
     
     pthread_t detection_thr;
 	pthread_create(&detection_thr, NULL, detection_fnc, &system);
@@ -24,7 +24,7 @@ int main() {
 	pthread_create(&loop_thr, NULL, loop_fnc, &system);
     
 	pthread_join(capture_thr, nullptr);
-    pthread_join(arduino_thr, nullptr);
+    //pthread_join(arduino_thr, nullptr);
     pthread_join(detection_thr, nullptr);
     pthread_join(loop_thr, nullptr);
     return 0;

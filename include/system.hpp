@@ -23,5 +23,5 @@ struct System {
     Atomic<i2c::Device> device_i2c;
     Atomic<int> device_id;
 
-	System(cv::Size frame_size = cv::Size(640, 480), cv::Rect sign_area = cv::Rect(0, 0, 640, 480), uint32_t server_port = 1111);
+	System(cv::Size frame_size = cv::Size(640, 480), cv::Rect sign_area = cv::Rect(364, 128, 640 - 364, 335 - 128), uint32_t server_port = 1111);
 };
