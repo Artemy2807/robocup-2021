@@ -49,7 +49,7 @@ void* detection_fnc(void* ptr) {
     while(!system.close_thr.read()) {
         // Получаем изображение с вебкамеры
 		obj_cur = system.frame.wait(obj_cur);
-		frame = (*(obj_cur->obj))(sign_area);
+		frame = (obj_cur->read())(sign_area);
 
         timer.start();
         extra::findCandidate(frame, gray, rects_cand);

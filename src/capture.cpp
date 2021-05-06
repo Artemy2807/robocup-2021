@@ -8,6 +8,7 @@ void* capture_fnc(void* ptr) {
     System &system = *((System *)ptr);
     // Таймер для расчёта ФПС
     extra::Timer timer_fps;
+    cv::Mat frame;
     // Переменная, которая хранит значение ФПС
     uint8_t fps_count;
 
@@ -29,7 +30,8 @@ void* capture_fnc(void* ptr) {
     while(!(system.close_thr.read())) {
         if(cap.grab()) {
             Object<cv::Mat>* obj_new = new Object<cv::Mat>();
-            cap.retrieve(*(obj_new->obj),0);
+            cap.read(frame);
+            obj_new.write(frame);
             system.frame.push(obj_new);
         }
 
