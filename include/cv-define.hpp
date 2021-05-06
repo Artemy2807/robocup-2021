@@ -20,5 +20,5 @@
 #else
     #include <memory>
 
-    #define CvPtrSVM    std::unique_ptr<CvSVM>
+    #define CvPtrSVM                    CvSVM
 #endif
