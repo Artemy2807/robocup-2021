@@ -11,7 +11,16 @@ typedef enum {
 } prio_level_t;
 
 extern int log_level;
-#define LOG(__level) if(__level <= log_level) std::cout << "[" << #__level << "](" << __FILE__ << ":" << __LINE__ << "): "
+#define LOG(__level) \
+    if(__level <= log_level) \
+        std::cout << "[" << #__level << "](" << __FILE__ << ":" << __LINE__ << "): "
+
+#define ASSERT(__cond) \
+    if(!(__cond)) { \
+        std::cerr << "ASSERTION FAILED\n\tfile: " << __FILE__ << "\n\tline: " << __LINE__ << "\n\tcond: " << #__cond << "\n"; \
+        exit(EXIT_FAILURE); \
+    }
+        
 
 inline void init_logger(int verbose) {
     switch(verbose) {
