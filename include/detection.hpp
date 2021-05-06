@@ -1,5 +1,4 @@
 #pragma once
-#include <set>
 #include <vector>
 #include "timer.hpp"
 #include "system.hpp"
@@ -7,6 +6,7 @@
 #include "cv-define.hpp"
 #include "fnc-extra.hpp"
 
+using signs_t = std::vector<Sign>;
 using rects_t = std::vector<cv::Rect>;
 
 inline float get_distance(cv::Rect sign_area);

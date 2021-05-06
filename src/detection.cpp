@@ -10,11 +10,10 @@ float get_distance(cv::Rect sign_area){
 
 const cv::Size hog_descriptor_size(64, 64);
 const std::vector<std::string> m_paths = { "../models/stop.xml", 
-                                            "../models/main-road.xml", 
-                                            "../models/move-top.xml", 
-                                            "../models/move-left.xml", 
-                                            "../models/move-right.xml" };
-const std::vector<sign_t> sign_codes = { stop_s, mainroad_s, top_s, left_s, right_s };
+                                            "../models/rough.xml", 
+                                            "../models/adv.xml", 
+                                            "../models/over-adv.xml" };
+const std::vector<sign_t> sign_codes = { stop_s, rough_s, adv_s, over_adv_s };
 
 /*
  * Функция для создания потока распознавания дорожных знаков на изображении.
@@ -27,9 +26,7 @@ void* detection_fnc(void* ptr) {
     Object<cv::Mat>* obj_cur = nullptr;
     cv::Rect sign_area = system.sign_area.read();
 
-    auto cmp = [](Sign a, Sign b) { return (a.sign == b.sign) };
-    std::set<Sign, decltype(cmp)> signs_detect(cmp),
-                                signs_global(cmp);
+    signs_t signs_global, signs_detect;
     rects_t rects_cand;
     extra::Timer timer;
     
@@ -37,7 +34,7 @@ void* detection_fnc(void* ptr) {
     hog.winSize = hog_descriptor_size;
     std::vector<CvPtrSVM> models;
     
-    for(unsigned int i = 0; i < paths.size(); i++) {
+    for(unsigned int i = 0; i < m_paths.size(); i++) {
 #if (CV_MAJOR_VERSION >= 3)
         models.push_back(CvSVM::load(m_paths[i]));
 #else
@@ -49,7 +46,7 @@ void* detection_fnc(void* ptr) {
     while(!system.close_thr.read()) {
         // Получаем изображение с вебкамеры
 		obj_cur = system.frame.wait(obj_cur);
-		frame = (obj_cur->read())(sign_area);
+		frame = (*(obj_cur->obj))(sign_area);
 
         timer.start();
         extra::findCandidate(frame, gray, rects_cand);
@@ -65,24 +62,71 @@ void* detection_fnc(void* ptr) {
                 cv::transpose(cv::Mat(descriptors), roi);
                 
                 for(unsigned long j = 0; j < models.size(); j++) {
-                    if(models[i]->predict(roi) > .4f) {
-                        signs_detect.insert(Sign(sign_codes[j], 
+                    if(models[j]->predict(roi) > .4f) {
+                        signs_detect.push_back(Sign(sign_codes[j], 
                                             rects_cand[i], 
                                             get_distance(rects_cand[i])));
+                        rectangle(frame, rects_cand[i], cv::Scalar(255, 0, 0), 2);
                         break;
                     }
                 }
+            }else if(fabs(0.5 - dl) < 0.3) {
+                unsigned long black_pxl = 0;
+                
+                {
+                    for (int32_t rows = 0; rows < rects_cand[i].height; rows++) {
+                        uint8_t* row = (uint8_t*)gray(rects_cand[i]).ptr<uint8_t>(rows);
+                        for (int32_t cols = 0; cols < rects_cand[i].width; cols++)
+                            if (row[cols] < 60) black_pxl++;
+                    }
+                }
+                
+                if(black_pxl > (rects_cand[i].height * rects_cand[i].width) * .4f)
+                    continue;
+                
+                const unsigned int column = rects_cand[i].width * 0.5;
+                unsigned int while_pxl = 0,
+                            white_pxl_offset = 0;
+                    
+                cv::Mat rr = gray(rects_cand[i]);
+                for (int32_t offset = 0; offset < rects_cand[i].height; offset++) 
+                    if (rr.at<uint8_t>(offset, column) > 70) {
+						while_pxl++;
+						white_pxl_offset += offset;
+					}
+                if (while_pxl <= 7) continue;
+                float light_pos = ((float)white_pxl_offset / (float)while_pxl) / (float)rr.rows;
+
+                Sign traffic_light;
+                traffic_light.area_ = rects_cand[i];
+				traffic_light.sign_ = tr_off_s;
+
+                if (light_pos > 0.20 && light_pos < 0.55)
+                    traffic_light.sign_ = tr_red_s;
+                else if (light_pos > 0.55 && light_pos < 0.85) 
+                    traffic_light.sign_ = tr_green_s;
+                    
+                signs_detect.push_back(traffic_light);
             }
         }
         
         timer.stop();
         long int spend_time = timer.millis();
+        
+		for (unsigned int i = 0; i < signs_detect.size(); i++) {
+			for (unsigned int j = i + 1; j < signs_detect.size(); j++) {
+				if (signs_detect[j].sign_ == signs_detect[i].sign_) {
+					signs_detect.erase(signs_detect.begin() + j);
+					j--;
+				}
+			}
+		}
 
 		for (unsigned int i = 0; i < signs_global.size(); i++) {
 			for (unsigned int j = 0; j < signs_detect.size(); j++) {
 				if (signs_global[i].sign_ == signs_detect[j].sign_) {
 					signs_global[i] = signs_detect[j];
-					signs_detect.erase(Signs.begin() + j);
+					signs_detect.erase(signs_detect.begin() + j);
 				}
 			}
 
@@ -96,7 +140,8 @@ void* detection_fnc(void* ptr) {
 
 		system.signs.write(signs_global);
 		signs_detect.clear();
-		obj_cur->free();
+        cv::imshow("frame", frame);
+        cv::waitKey(30);
     }
     return nullptr;
 }
