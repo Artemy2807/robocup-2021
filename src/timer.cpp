@@ -15,7 +15,7 @@ namespace extra {
     * Функция возвращает время между вызовами start() и stop()
     * в миллисекундах 
     */
-    long int Timer::millis() {
+    unsigned long Timer::millis() {
         return static_cast<long int>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(end_t_ - start_t_).count());
     }
@@ -23,7 +23,7 @@ namespace extra {
     * Функция возвращает время между вызовами start() и stop()
     * в микросекундах 
     */
-    long Timer::micros() {
+    unsigned long Timer::micros() {
         return static_cast<long int>(
                 std::chrono::duration_cast<std::chrono::microseconds>(end_t_ - start_t_).count());
     }

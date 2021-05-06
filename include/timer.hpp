@@ -16,12 +16,12 @@ namespace extra {
         * Функция возвращает время между вызовами start() и stop()
         * в миллисекундах 
         */
-        long int millis();
+        unsigned long millis();
         /* 
         * Функция возвращает время между вызовами start() и stop()
         * в микросекундах 
         */
-        long int micros();
+        unsigned long micros();
     
     private:
         time_point<high_resolution_clock> start_t_,
