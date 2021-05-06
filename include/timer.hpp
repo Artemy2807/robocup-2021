@@ -1,6 +1,9 @@
 #pragma once
 #include <chrono>
 
+using std::chrono::time_point;
+using std::chrono::high_resolution_clock;
+
 namespace extra {
     class Timer {
     public:
@@ -21,7 +24,7 @@ namespace extra {
         long int micros();
     
     private:
-        std::chrono::time_point start_t_,
+        time_point<high_resolution_clock> start_t_,
                                 end_t_;
                                 
     };

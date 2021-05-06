@@ -13,13 +13,14 @@
 
 struct System {
 	Queue<cv::Mat> frame;
-	Object<Line> line;
-	Object<cv::Point> frame_size;
-	Object<Engine> engine;
-	Object<std::vector<Sign>> signs;
-	Object<uint32_t> server_port;
-	Object<bool> close_thr;
-	Object<cv::Rect> sign_area;
+	Queue<Line> line;
+	Atomic<cv::Point> frame_size;
+	Atomic<Engine> engine;
+	Atomic<std::vector<Sign>> signs;
+	Atomic<uint32_t> server_port;
+	Atomic<bool> close_thr;
+	Atomic<cv::Rect> sign_area;
+    Atomic<int> device_id;
 
 	System(cv::Size frame_size = cv::Size(640, 480), cv::Rect sign_area = cv::Rect(0, 0, 640, 480), uint32_t server_port = 1111);
 };

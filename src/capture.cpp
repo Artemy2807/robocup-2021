@@ -1,5 +1,13 @@
 #include "capture.hpp"
 
+bool program_end = false;
+
+void signal_upd(int signal) {
+  // Если пользователь нажал сочетание клавиш CRTL+С, то
+  // устаналиваем флаг для завершения программы в true
+  program_end = true;
+}
+
 /*
  * Функция для создания потока чтения кадров с вебкамеры.
  * ptr - указатель на параметр типа void, для получения основной информации о модели. 
@@ -8,9 +16,11 @@ void* capture_fnc(void* ptr) {
     System &system = *((System *)ptr);
     // Таймер для расчёта ФПС
     extra::Timer timer_fps;
-    cv::Mat frame;
     // Переменная, которая хранит значение ФПС
-    uint8_t fps_count;
+    int fps_count = 0;
+    
+    // Устаналиваем, то что при нажатие сочетания клавиш CRTL+C вызывалась функция signal_upd
+    std::signal(SIGINT, signal_upd);
 
     int cap_id = system.device_id.read();
 	cv::VideoCapture cap(cap_id, CV_CAP_V4L);
@@ -30,10 +40,12 @@ void* capture_fnc(void* ptr) {
     while(!(system.close_thr.read())) {
         if(cap.grab()) {
             Object<cv::Mat>* obj_new = new Object<cv::Mat>();
-            cap.read(frame);
-            obj_new.write(frame);
+            cap.retrieve(*(obj_new->obj), 0);
             system.frame.push(obj_new);
         }
+        
+        if(program_end)
+            system.close_thr.write(true);
 
         // Проверяем таймер, если прошла одна секунда, то выводим
         // количество ФПС и обнуляем таймер, в противном случае прибавляем единицу

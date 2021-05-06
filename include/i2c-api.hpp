@@ -2,6 +2,7 @@
 #include <linux/i2c-dev.h> 
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
 
@@ -35,7 +36,7 @@ namespace i2c {
         
     private:
         int fd_;
-        Device dev_;
+        Device device_;
         
     };
 

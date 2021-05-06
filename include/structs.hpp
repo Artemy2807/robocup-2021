@@ -3,10 +3,10 @@
 
 // Структура, определяющая тип дороги перед моделью
 typedef enum {
-    unknown = 0,
-    stopline,
-    fork,
-    crossroad,
+    unknown_r = 0,
+    stopline_r,
+    fork_r,
+    crossroad_r,
 } road_t;
 
 // Перечисление, в котором хранятся возможные распознаные дорожные знаки
@@ -51,7 +51,7 @@ struct Line {
                 old_width_ = 0,
                 max_difference_ = 0,
                 set_point_ = 320;
-    road_t road_type_ = unknown;
+    road_t road_type_ = unknown_r;
 };
 
 // Структура, которая реализует хранение информации о движении модели

@@ -22,9 +22,9 @@ namespace extra {
         cv::findContours(prop, contours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
         std::for_each(std::begin(contours), std::end(contours), 
                     [&](const contour_t& a){
-                        float area = fabs(cv::contourArea((cv::Mat)contours[i]));
+                        float area = fabs(cv::contourArea((cv::Mat)a));
                         if(area < area_min || area > area_max)
-                            continue;
+                            return;
                             
                         cv::approxPolyDP(a, approx, cv::arcLength(cv::Mat(a), true) * 0.01, true);
                         cv::Rect rect = cv::boundingRect(approx);
