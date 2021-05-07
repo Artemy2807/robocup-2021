@@ -83,7 +83,7 @@ void* detection_fnc(void* ptr) {
             Object<Line>* new_line = nullptr;
             new_line = system.line.wait(new_line);
             
-            if(new_line == nullptr || ((new_line->obj->road_type_) == stopline_r)) {
+            if(new_line == nullptr || ((new_line->obj->road_type_) != stopline_r)) {
                 new_line->free();
                 continue;
             }
@@ -168,10 +168,10 @@ void* detection_fnc(void* ptr) {
 
 		system.signs.write(signs_global);
 		signs_detect.clear();
-        cv::imshow("frame", frame);
+        //cv::imshow("frame", frame);
         //cv::imshow("gray", gray);
         //cv::imshow("prop", prop);
-        cv::waitKey(0);
+        //cv::waitKey(0);
         obj_cur->free();
         timer.start();
     }

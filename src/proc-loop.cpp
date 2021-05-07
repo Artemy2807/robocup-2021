@@ -1,7 +1,10 @@
 #include "proc-loop.hpp"
 
+static const bool base_direction = true;
 static const uint8_t base_speed = 30;
+static const float k_speed = 2.0;
 static const unsigned long base_reaction_time = 2000;
+static const unsigned long base_reaction_dist = 10;
 
 void* loop_fnc(void* ptr) {
     System& system = *((System*)ptr);
@@ -18,6 +21,7 @@ void* loop_fnc(void* ptr) {
     while(!(system.close_thr.read())) {
         engine = system.engine.read();
         engine.speed_ = base_speed;
+        engine.direction_ = base_direction;
         
         if(!(hold)) {
             signs = system.signs.read();
@@ -57,13 +61,57 @@ void* loop_fnc(void* ptr) {
                     holders.push_back(Holder(0, base_reaction_time, false));
                     break;
                 }
+                case rough_s:
+                {
+                    if(sign.distance_ > base_reaction_dist)
+                        holders.push_back(Holder(base_speed, sign.distance_ - base_reaction_dist, true));
+                    holders.push_back(Holder(((float)base_speed / k_speed), base_reaction_dist * 2, true));
+                    break;
+                }
+                case over_adv_s:
+                {
+                    if(sign.distance_ > base_reaction_dist)
+                        holders.push_back(Holder(base_speed, sign.distance_ - base_reaction_dist, true));
+                    holders.push_back(Holder(((float)base_speed * k_speed), base_reaction_dist * 2, true));
+                    break;
+                }
+                case adv_s:
+                {
+                    holders.push_back(Holder(base_speed, sign.distance_, true));
+                    holders.push_back(Holder(0, 100, false));
+                    holders.push_back(Holder(base_speed, base_reaction_dist, true, !base_direction));
+                    holders.push_back(Holder(0, base_reaction_time, false));
+                    break;
+                }
 #else
                 case stop_s:
                 {
                     holders.push_back(Holder(0, base_reaction_time, false));
                     break;
                 }
+                case rough_s:
+                {
+                    holders.push_back(Holder(((float)base_speed / k_speed), base_reaction_time, false));
+                    break;
+                }
+                case over_adv_s:
+                {
+                    holders.push_back(Holder(((float)base_speed * k_speed), base_reaction_time, false));
+                    break;
+                }
+                case adv_s:
+                {
+                    holders.push_back(Holder(0, 100, false));
+                    holders.push_back(Holder(base_speed, base_reaction_dist, true, !base_direction));
+                    holders.push_back(Holder(0, base_reaction_time, false));
+                    break;
+                }
 #endif
+                case tr_red_s:
+                {
+                    holders.push_back(Holder(0, 100, false));
+                    break;
+                }
                 case tr_green_s:
                 {
                     holders.push_back(Holder(base_speed, 10, true));
@@ -90,6 +138,7 @@ void* loop_fnc(void* ptr) {
                     holders.erase(holders.begin());
                 }else {
                     engine.speed_ = holder.speed_;
+                    engine.direction_ = holder.direction_;
                 }
             }else
                 hold = false;

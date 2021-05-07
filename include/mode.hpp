@@ -1,8 +1,8 @@
 #pragma once
 
-#define __CV_TESTING__
-//#define __LINE_TESTING__
-//#define __FULL_PROGRAM__
+//#define __CV_TESTING__
+#define __LINE_TESTING__
+#define __FULL_PROGRAM__
 
 #if (defined(__CV_TESTING__) || defined(__FULL_PROGRAM__))
 #   define __CV_INCLUDE__
