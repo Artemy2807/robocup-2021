@@ -36,16 +36,12 @@ void* capture_fnc(void* ptr) {
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, frame_size.y);
 	cap.set(CV_CAP_PROP_FPS, 30);
 
-    bool ending_frame = true;
     timer_fps.start();
-    while(!(system.close_thr.read()) || (ending_frame)) {
+    while(!(system.close_capture.read())) {
         if(cap.grab()) {
             Object<cv::Mat>* obj_new = new Object<cv::Mat>();
             cap.retrieve(*(obj_new->obj), 0);
             system.frame.push(obj_new);
-            
-            if(program_end)
-                ending_frame = false;
         }
         
         if(program_end)

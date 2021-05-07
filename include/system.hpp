@@ -19,7 +19,8 @@ struct System {
 	Atomic<Engine> engine;
 	Atomic<std::vector<Sign>> signs;
 	Atomic<uint32_t> server_port;
-	Atomic<bool> close_thr;
+	Atomic<bool> close_thr,
+                close_capture;
 	Atomic<cv::Rect> sign_area;
     Atomic<i2c::Device> device_i2c;
     Atomic<int> device_id;

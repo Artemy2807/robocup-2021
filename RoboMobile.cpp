@@ -11,6 +11,7 @@
 
 int main() {
     System system;
+    system.close_capture.write(false);
 
 	pthread_t capture_thr;
 	pthread_create(&capture_thr, nullptr, capture_fnc, &system);
@@ -31,7 +32,6 @@ int main() {
 	pthread_create(&loop_thr, NULL, loop_fnc, &system);
 #endif
 
-	pthread_join(capture_thr, nullptr);
 #if defined(__LINE_INCLUDE__)
     pthread_join(navigation_thr, nullptr);
 #endif
@@ -40,6 +40,9 @@ int main() {
     pthread_join(loop_thr, nullptr);
 #endif
     pthread_join(arduino_thr, nullptr);
+    
+    system.close_capture.write(true);
+    pthread_join(capture_thr, nullptr);
     return 0;
 }
  
