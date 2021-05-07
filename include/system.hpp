@@ -20,6 +20,7 @@ struct System {
 	Atomic<uint32_t> server_port;
 	Atomic<bool> close_thr;
 	Atomic<cv::Rect> sign_area;
+    Atomic<i2c::Device> device_i2c;
     Atomic<int> device_id;
 
 	System(cv::Size frame_size = cv::Size(640, 480), cv::Rect sign_area = cv::Rect(0, 0, 640, 480), uint32_t server_port = 1111);

@@ -18,7 +18,8 @@ namespace i2c {
             LOG(ERROR) << "Can not opened the slave device " << std::hex << std::uppercase << device_.addr_ << "\n";
             return false;
         }
-
+        
+        LOG(NOTICE) << "Connected to the i2c slave device " << std::hex << std::uppercase << device_.addr_ << "\n";
         return true;
     }
     
@@ -28,12 +29,7 @@ namespace i2c {
     }
 
     ssize_t I2C::read(void* receive, size_t size) {
-        ssize_t size_ = 0;
-
-        if((size_ = ::read(fd_, receive, size)) < 0)
-            LOG(WARNING) << "Can not read data from the slave device.\n";
-
-        return size_;
+        return ::read(fd_, receive, size);
     }
 
     ssize_t I2C::write(void* transmitter, size_t size) {
