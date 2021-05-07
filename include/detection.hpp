@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include "omp.h"
+
 #include "timer.hpp"
 #include "system.hpp"
 #include "structs.hpp"

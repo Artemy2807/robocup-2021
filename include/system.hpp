@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <vector>
 
+#include "mode.hpp"
 #include "queue.hpp"
 #include "i2c-api.hpp"
 #include "structs.hpp"

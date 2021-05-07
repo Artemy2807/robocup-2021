@@ -50,12 +50,20 @@ void* loop_fnc(void* ptr) {
                 hold = true;
             
             switch(sign_code) {
+#if defined(__FULL_REACTION__)
                 case stop_s:
                 {
-                    //holders.push_back(Holder(base_speed, sign.distance_, true));
+                    holders.push_back(Holder(base_speed, sign.distance_, true));
                     holders.push_back(Holder(0, base_reaction_time, false));
                     break;
                 }
+#else
+                case stop_s:
+                {
+                    holders.push_back(Holder(0, base_reaction_time, false));
+                    break;
+                }
+#endif
                 case tr_green_s:
                 {
                     holders.push_back(Holder(base_speed, 10, true));
@@ -86,8 +94,6 @@ void* loop_fnc(void* ptr) {
             }else
                 hold = false;
         }
-        
-        std::cout << (int)engine.speed_ << std::endl;
         
         system.engine.write(engine);
         usleep(10000);

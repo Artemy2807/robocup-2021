@@ -9,6 +9,7 @@ float get_distance(cv::Rect sign_area){
 }
 
 const cv::Size hog_descriptor_size(64, 64);
+const int size_models = 4;
 const std::vector<std::string> m_paths = { "../models/stop.xml", 
                                             "../models/rough.xml", 
                                             "../models/adv.xml", 
@@ -35,6 +36,7 @@ void* detection_fnc(void* ptr) {
     hog.winSize = hog_descriptor_size;
     std::vector<CvPtrSVM> models;
     
+    omp_set_num_threads(size_models);
     for(unsigned int i = 0; i < m_paths.size(); i++) {
 #if (CV_MAJOR_VERSION >= 3)
         models.push_back(CvSVM::load(m_paths[i]));
@@ -43,6 +45,7 @@ void* detection_fnc(void* ptr) {
         models.back().load(m_paths[i]);
 #endif
     }
+    
     timer.start();
     while(!system.close_thr.read()) {
         // Получаем изображение с вебкамеры
@@ -64,16 +67,29 @@ void* detection_fnc(void* ptr) {
                 roi.create(1, descriptors.size(), CV_32FC1);
                 cv::transpose(cv::Mat(descriptors), roi);
                 
+                #pragma omp parallel for
                 for(unsigned long j = 0; j < models.size(); j++) {
                     if(models[j]->predict(roi) > .4f) {
                         signs_detect.push_back(Sign(sign_codes[j], 
                                             rects_cand[i], 
                                             get_distance(rects_cand[i])));
                         rectangle(frame(sign_area), rects_cand[i], cv::Scalar(255, 0, 0), 2);
-                        break;
+                        //break;
                     }
                 }
-            }else if(fabs(0.5 - dl) < 0.3) {
+            }
+            
+#if (__LINE_INCLUDE__)
+            Object<Line>* new_line = nullptr;
+            new_line = system.line.wait(new_line);
+            
+            if(new_line == nullptr || ((new_line->obj->road_type_) == stopline_r)) {
+                new_line->free();
+                continue;
+            }
+            new_line->free();
+#endif
+            if(fabs(0.5 - dl) < 0.3) {
                 if(!cv::isContourConvex(approx_c[i]))
                     continue;
                 

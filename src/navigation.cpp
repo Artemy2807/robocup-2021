@@ -1,5 +1,6 @@
 #include "navigation.hpp"
 
+#if defined(__LINE_INCLUDE__)
 /*
  * Функция, которая проверяет является ли пиксель черным.
  */
@@ -16,9 +17,11 @@ static int32_t center_first = -1,
             max_diff_ = 0,
             min_diff_ = 0,
             max_row = -1;
-            
+    
+#if (__LINE_INCLUDE__ == 2)
 static bool seen_prev = false,
             first_stop_line = true;
+#endif
 
 /*
  * Функция для нахождения чёрной линии на изображение.
@@ -138,6 +141,11 @@ void* navigation_fnc(void* ptr) {
         
         Object<Line>* new_line = new Object<Line>();
 
+#if (__LINE_INCLUDE__ == 1)
+        
+        proc_line(frame, (scan_row), line);
+#elif (__LINE_INCLUDE__ == 2)
+        
         center_first = -1;
 		max_diff_ = 0;
         min_diff_ = 0;
@@ -178,6 +186,7 @@ void* navigation_fnc(void* ptr) {
         
         if(line.road_type_ == crossroad_r || seen_prev)
             seen_prev_t.start();
+#endif
 
         *(new_line->obj) = line;
 		system.line.push(new_line);
@@ -185,3 +194,5 @@ void* navigation_fnc(void* ptr) {
 	}
 	return nullptr;
 }
+
+#endif

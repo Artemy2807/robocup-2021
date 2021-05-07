@@ -23,8 +23,7 @@ void* capture_fnc(void* ptr) {
     std::signal(SIGINT, signal_upd);
 
     int cap_id = system.device_id.read();
-	//cv::VideoCapture cap(cap_id, CV_CAP_V4L);
-    cv::VideoCapture cap("stop.avi");
+	cv::VideoCapture cap(cap_id, CV_CAP_V4L);
 	if (!cap.isOpened()) {
         LOG(WARNING) << "Cant't open video source " << cap_id << "\n";
         system.close_thr.write(true);
@@ -44,7 +43,6 @@ void* capture_fnc(void* ptr) {
             cap.retrieve(*(obj_new->obj), 0);
             system.frame.push(obj_new);
         }
-        usleep(100000);
         
         if(program_end)
             system.close_thr.write(true);
