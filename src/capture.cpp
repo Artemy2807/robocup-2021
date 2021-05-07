@@ -44,7 +44,7 @@ void* capture_fnc(void* ptr) {
             cap.retrieve(*(obj_new->obj), 0);
             system.frame.push(obj_new);
         }
-        usleep(40000);
+        usleep(100000);
         
         if(program_end)
             system.close_thr.write(true);

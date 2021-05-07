@@ -3,7 +3,8 @@
 namespace extra {
 
     void findCandidate(const cv::Mat& input, cv::Mat& gray, cv::Mat& prop,
-                    std::vector<cv::Rect>& min_rects,
+                    std::vector<cv::Rect>& min_rects, 
+                    std::vector<contour_t>& approx_c,
                     cv::Size blur_kernel, 
                     int area_min, 
                     int area_max) 
@@ -12,6 +13,7 @@ namespace extra {
         static std::vector<contour_t> contours;
         static contour_t approx;
 
+        approx_c.clear();
         min_rects.clear();
 
         //cv::GaussianBlur(input, gray, blur_kernel, 2);
@@ -30,6 +32,7 @@ namespace extra {
                             
                         cv::approxPolyDP(a, approx, cv::arcLength(cv::Mat(a), true) * 0.01, true);                        
                         cv::Rect rect = cv::boundingRect(approx);
+                        approx_c.push_back(approx);
                         min_rects.push_back(rect);
                     });
     }

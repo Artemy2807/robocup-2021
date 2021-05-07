@@ -45,12 +45,9 @@ struct Sign {
 // Структура, в которую записывается информация о распознанной чёрной линии.
 // Чёрная линия - это направляющая линия, по которой должна двигаться модель.
 struct Line {
-    unsigned int center_ = -1,
-                old_center_ = -1,
-                width_ = 0,
-                old_width_ = 0,
-                max_difference_ = 0,
-                set_point_ = 320;
+    int32_t center_ = -1,
+            old_center_ = -1,
+            set_point_ = 320;
     road_t road_type_ = unknown_r;
 };
 

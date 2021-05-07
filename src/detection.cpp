@@ -22,12 +22,13 @@ const std::vector<sign_t> sign_codes = { stop_s, rough_s, adv_s, over_adv_s };
 void* detection_fnc(void* ptr) {
 	System &system = *((System*)ptr);
     
-    cv::Mat frame, gray, roi, prop;
+    cv::Mat gray, roi, prop;
     Object<cv::Mat>* obj_cur = nullptr;
     cv::Rect sign_area = system.sign_area.read();
 
     signs_t signs_global, signs_detect;
     rects_t rects_cand;
+    std::vector<extra::contour_t> approx_c;
     extra::Timer timer;
     
     cv::HOGDescriptor hog;
@@ -49,9 +50,9 @@ void* detection_fnc(void* ptr) {
         if(obj_cur == nullptr)
             continue;
 
-		frame = (*(obj_cur->obj))(sign_area);
+		cv::Mat& frame = (*(obj_cur->obj));
 
-        extra::findCandidate(frame, gray, prop, rects_cand);
+        extra::findCandidate(frame(sign_area), gray, prop, rects_cand, approx_c);
         
         for(unsigned int i = 0; i < rects_cand.size(); i++) {
             float dl = (float)rects_cand[i].width / (float)rects_cand[i].height;
@@ -68,11 +69,14 @@ void* detection_fnc(void* ptr) {
                         signs_detect.push_back(Sign(sign_codes[j], 
                                             rects_cand[i], 
                                             get_distance(rects_cand[i])));
-                        rectangle(frame, rects_cand[i], cv::Scalar(255, 0, 0), 2);
+                        rectangle(frame(sign_area), rects_cand[i], cv::Scalar(255, 0, 0), 2);
                         break;
                     }
                 }
             }else if(fabs(0.5 - dl) < 0.3) {
+                if(!cv::isContourConvex(approx_c[i]))
+                    continue;
+                
                 unsigned long black_pxl = 0;
                 
                 {
@@ -101,11 +105,13 @@ void* detection_fnc(void* ptr) {
                 traffic_light.area_ = rects_cand[i];
 				traffic_light.sign_ = tr_off_s;
 
-                if (light_pos > 0.20 && light_pos < 0.55)
+                if (light_pos > 0.20 && light_pos < 0.55) {
                     traffic_light.sign_ = tr_red_s;
-                else if (light_pos > 0.55 && light_pos < 0.85) 
+                    rectangle(frame(sign_area), rects_cand[i], cv::Scalar(0, 0, 255), 2);
+                }else if (light_pos > 0.55 && light_pos < 0.85){
                     traffic_light.sign_ = tr_green_s;
-                rectangle(frame, rects_cand[i], cv::Scalar(0, 255, 0), 2);
+                    rectangle(frame(sign_area), rects_cand[i], cv::Scalar(0, 255, 0), 2);
+                }
                 signs_detect.push_back(traffic_light);
             }
         }
@@ -149,7 +155,8 @@ void* detection_fnc(void* ptr) {
         cv::imshow("frame", frame);
         //cv::imshow("gray", gray);
         //cv::imshow("prop", prop);
-        cv::waitKey(30);
+        cv::waitKey(0);
+        obj_cur->free();
         timer.start();
     }
     return nullptr;

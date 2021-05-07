@@ -72,6 +72,7 @@ public:
     }
 
     void push(Object<T>* obj) {
+        obj->count = 1;
         pthread_mutex_lock(&(lock_));
         if(obj_ != nullptr) obj_->free();
         obj_ = obj;
@@ -88,7 +89,7 @@ public:
             if(count >= 100)
                 break;
             
-            if(cur_obj == NULL || old_obj == cur_obj) {
+            if(cur_obj == nullptr || old_obj == cur_obj) {
                 usleep(1000);
                 count++;
             }else {
