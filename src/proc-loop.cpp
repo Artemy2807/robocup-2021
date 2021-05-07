@@ -32,10 +32,10 @@ void* loop_fnc(void* ptr) {
                     kp = .0f,
                     ki = .0f,
                     kd = .0f;
-        
+
         Object<Line>* new_line = nullptr;
         new_line = system.line.wait(new_line);
-            
+
         if(new_line != nullptr && ((new_line->obj->center_) != -1)) {
             static int32_t prev_center = new_line->obj->center_;
             float error = new_line->obj->set_point_ - new_line->obj->center_,
@@ -50,8 +50,8 @@ void* loop_fnc(void* ptr) {
             output += integral;
             
             engine.angle_ = (uint8_t)(base_angle + (output > range_angle ? range_angle : (output < -range_angle ? -range_angle : output)));
+            new_line->free();
         }
-        new_line->free();
 #endif
         
         if(!(hold)) {

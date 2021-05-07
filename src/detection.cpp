@@ -82,8 +82,10 @@ void* detection_fnc(void* ptr) {
 #if (__LINE_INCLUDE__)
             Object<Line>* new_line = nullptr;
             new_line = system.line.wait(new_line);
+            if(new_line == nullptr)
+                continue;
             
-            if(new_line == nullptr || ((new_line->obj->road_type_) != stopline_r)) {
+            if((new_line->obj->road_type_) != stopline_r) {
                 new_line->free();
                 continue;
             }

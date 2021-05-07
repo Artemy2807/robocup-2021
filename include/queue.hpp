@@ -81,17 +81,17 @@ public:
 
     Object<T>* wait(Object<T>* cur_obj) {
         Object<T>* old_obj = cur_obj;
-        int count = 0;
+        //int count = 0;
         while(1) {
             pthread_mutex_lock(&(lock_));
             cur_obj = obj_;
             pthread_mutex_unlock(&(lock_));
-            if(count >= 100)
-                break;
+            //if(count >= 100)
+            //    break;
             
             if(cur_obj == nullptr || old_obj == cur_obj) {
                 usleep(1000);
-                count++;
+                //count++;
             }else {
                 cur_obj->busy();
                 break;
