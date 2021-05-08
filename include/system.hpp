@@ -17,6 +17,7 @@ struct System {
 	Queue<Line> line;
 	Atomic<cv::Point> frame_size;
 	Atomic<Engine> engine;
+	Atomic<unsigned long> distance;
 	Atomic<std::vector<Sign>> signs;
 	Atomic<uint32_t> server_port;
 	Atomic<bool> close_thr,
@@ -26,4 +27,5 @@ struct System {
     Atomic<int> device_id;
 
 	System(cv::Size frame_size = cv::Size(640, 480), cv::Rect sign_area = cv::Rect(364, 128, 640 - 364, 335 - 128), uint32_t server_port = 1111);
+	
 };

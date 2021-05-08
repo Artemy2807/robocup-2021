@@ -56,13 +56,11 @@ struct Engine {
 	uint8_t speed_,
 	        angle_;
 	bool direction_;
-	unsigned long distance_;
 	
-	Engine(uint8_t speed = 0, uint8_t angle = 90, bool direction = true, unsigned long distance = 0):
+	Engine(uint8_t speed = 0, uint8_t angle = 90, bool direction = true):
         speed_(speed),
         angle_(angle),
-        direction_(direction),
-        distance_(distance)
+        direction_(direction)
     {
     }
 };

@@ -1,5 +1,6 @@
 #include "proc-loop.hpp"
 
+/*
 static const bool base_direction = true;
 static const uint8_t base_speed = 30,
                     base_angle = 90,
@@ -8,6 +9,28 @@ static const float k_speed = 2.0,
                 range_integral = 50;
 static const unsigned long base_reaction_time = 2000;
 static const unsigned long base_reaction_dist = 10;
+*/
+
+#if (__LINE_INCLUDE__ == 1)
+static const bool base_direction = true;
+static const uint8_t base_speed = 75,
+                    base_angle = 90,
+                    range_angle = 30;
+static const float k_speed = 2.0,
+                range_integral = 50;
+static const unsigned long base_reaction_time = 2000;
+static const unsigned long base_reaction_dist = 10;
+
+#else
+static const bool base_direction = true;
+static const uint8_t base_speed = 30,
+                    base_angle = 90,
+                    range_angle = 30;
+static const float k_speed = 2.0,
+                range_integral = 50;
+static const unsigned long base_reaction_time = 2000;
+static const unsigned long base_reaction_dist = 10;
+#endif
 
 void* loop_fnc(void* ptr) {
     System& system = *((System*)ptr);
@@ -24,19 +47,22 @@ void* loop_fnc(void* ptr) {
     while(!(system.close_thr.read())) {
         engine = system.engine.read();
         engine.angle_ = base_angle;
-        engine.speed_ = base_speed;
+        if(!(hold_tr_red)) engine.speed_ = base_speed;
         engine.direction_ = base_direction;
     
 #if defined(__LINE_INCLUDE__)
-        static float integral = .0f,
-                    kp = .0f,
-                    ki = .0f,
-                    kd = .0f;
+#if (__LINE_INCLUDE__ == 1)
+        static float integral = 0.0f,
+                    kp = 0.2f,
+                    ki = 0.0f,
+                    kd = 0.6f;
+#endif
 
         Object<Line>* new_line = nullptr;
         new_line = system.line.wait(new_line);
 
-        if(new_line != nullptr && ((new_line->obj->center_) != -1)) {
+        if(new_line != nullptr/* && ((new_line->obj->center_) != -1)*/) {
+	if(((new_line->obj->center_) != -1)) {
             static int32_t prev_center = new_line->obj->center_;
             float error = new_line->obj->set_point_ - new_line->obj->center_,
                 delta = prev_center - new_line->obj->center_,
@@ -50,7 +76,12 @@ void* loop_fnc(void* ptr) {
             output += integral;
             
             engine.angle_ = (uint8_t)(base_angle + (output > range_angle ? range_angle : (output < -range_angle ? -range_angle : output)));
-            new_line->free();
+            	std::cout << "Error: " << error << std::endl;
+		std::cout << "Delta: " << delta << std::endl;
+		std::cout << "Output: " << output << std::endl;
+		std::cout << "Angle: " << (int)engine.angle_ << std::endl;
+		}
+		new_line->free();
         }
 #endif
         
@@ -159,13 +190,13 @@ void* loop_fnc(void* ptr) {
                 Holder& holder = holders.front();
                 if(holder.init_) {
                     timer_reaction.start();
-                    distance_prev = engine.distance_;
+                    distance_prev = system.distance.read();
                     holder.init_ = false;
                 }
-                
+                std::cout << system.distance.read() << " " << distance_prev << std::endl;
                 timer_reaction.stop();
                 if((!(holder.toggle_) && timer_reaction.millis() >= holder.thr_) || 
-                    (holder.toggle_ && (engine.distance_ - distance_prev) >= holder.thr_)) {
+                    (holder.toggle_ && ((system.distance.read()) - distance_prev) >= holder.thr_)) {
                     holders.erase(holders.begin());
                 }else {
                     engine.speed_ = holder.speed_;
@@ -176,7 +207,7 @@ void* loop_fnc(void* ptr) {
         }
         
         system.engine.write(engine);
-        usleep(10000);
+        usleep(25000);
     }
     return nullptr;
 }

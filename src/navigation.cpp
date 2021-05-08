@@ -16,7 +16,8 @@ static int32_t center_first = -1,
             center_seria = -1,
             max_diff_ = 0,
             min_diff_ = 0,
-            max_row = -1;
+            max_row = -1,
+	ending_center = -1;
     
 #if (__LINE_INCLUDE__ == 2)
 static bool seen_prev = false,
@@ -116,6 +117,8 @@ void proc_line(const cv::Mat& frame, int32_t scan, Line& line) {
 		}
 	}
 
+	if(line.center_ != -1) ending_center = line.center_;
+
 	line.old_center_ = line.center_;
 }
 /*
@@ -143,7 +146,10 @@ void* navigation_fnc(void* ptr) {
 
 #if (__LINE_INCLUDE__ == 1)
         
-        proc_line(frame, (scan_row), line);
+        //for(unsigned int i = 0; i < 2; i++) 
+	proc_line(frame, (scan_row), line);
+	if(line.center_ == -1)
+		line.center_ = ending_center;
 #elif (__LINE_INCLUDE__ == 2)
         
         center_first = -1;
@@ -187,7 +193,7 @@ void* navigation_fnc(void* ptr) {
         if(line.road_type_ == crossroad_r || seen_prev)
             seen_prev_t.start();
 #endif
-
+	std::cout << line.center_ << std::endl;
         *(new_line->obj) = line;
 		system.line.push(new_line);
         obj_cur->free();

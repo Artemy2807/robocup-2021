@@ -162,11 +162,11 @@ void* detection_fnc(void* ptr) {
 		for (unsigned int i = 0; i < signs_detect.size(); i++)
 			signs_global.push_back(signs_detect[i]);
         
-       /* for(unsigned int i = 0; i < signs_global.size(); i++) {
+        for(unsigned int i = 0; i < signs_global.size(); i++) {
             std::cout << "sign code: " << (int)signs_global[i].sign_ << std::endl;
             std::cout << "sign time: " << (int)signs_global[i].time_ << std::endl;
             cv::rectangle(frame, signs_global[i].area_, cv::Scalar(0, 255, 0), 2);
-        }*/
+        }
 
 		system.signs.write(signs_global);
 		signs_detect.clear();
