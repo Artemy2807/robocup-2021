@@ -10,4 +10,6 @@ System::System(cv::Size frame_size, cv::Rect sign_area, uint32_t server_port) {
     this->device_id.write(0);
 
     this->distance.write(0);
+    
+    this->close_capture.write(false);
 }
