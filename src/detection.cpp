@@ -45,7 +45,9 @@ void* detection_fnc(void* ptr) {
         models.back().load(m_paths[i]);
 #endif
     }
-    
+   
+   bool start_tr_det = true;
+ 
     timer.start();
     while(!system.close_thr.read()) {
         // Получаем изображение с вебкамеры
@@ -73,13 +75,16 @@ void* detection_fnc(void* ptr) {
                         signs_detect.push_back(Sign(sign_codes[j], 
                                             rects_cand[i], 
                                             get_distance(rects_cand[i])));
-                        rectangle(frame(sign_area), rects_cand[i], cv::Scalar(255, 0, 0), 2);
+                        //rectangle(frame(sign_area), rects_cand[i], cv::Scalar(255, 0, 0), 2);
                         //break;
                     }
                 }
             }
+
             
 #if (__LINE_INCLUDE__)
+
+		if(!start_tr_det) {
             Object<Line>* new_line = nullptr;
             new_line = system.line.wait(new_line);
             if(new_line == nullptr)
@@ -90,34 +95,43 @@ void* detection_fnc(void* ptr) {
                 continue;
             }
             new_line->free();
+		}
 #endif
-            if(fabs(0.5 - dl) < 0.3) {
+            if((fabs(0.5 - dl) < 0.3) || (start_tr_det && (fabs(0.8 - dl) < 0.2))) {
                 if(!cv::isContourConvex(approx_c[i]))
                     continue;
-                
+               
                 unsigned long black_pxl = 0;
-                
+                int min_px = 255;
                 {
                     for (int32_t rows = 0; rows < rects_cand[i].height; rows++) {
                         uint8_t* row = (uint8_t*)gray(rects_cand[i]).ptr<uint8_t>(rows);
-                        for (int32_t cols = 0; cols < rects_cand[i].width; cols++)
+                        for (int32_t cols = 0; cols < rects_cand[i].width; cols++) {
                             if (row[cols] < 60) black_pxl++;
+                            if(min_px > row[cols]) 
+                                min_px = row[cols];
+                        }
                     }
                 }
 
                 if(black_pxl < (rects_cand[i].height * rects_cand[i].width) * .5f)
                     continue;
+
                 const unsigned int column = rects_cand[i].width * 0.5;
                 unsigned int while_pxl = 0,
                             white_pxl_offset = 0;
                     
                 cv::Mat rr = gray(rects_cand[i]);
-                for (int32_t offset = 0; offset < rects_cand[i].height; offset++) 
-                    if (rr.at<uint8_t>(offset, column) > 70) {
-						while_pxl++;
-						white_pxl_offset += offset;
-					}
-                if (while_pxl <= 7) continue;
+                for (int32_t offset = 0; offset < rects_cand[i].height; offset++){ 
+                    //std::cout << (int)rr.at<uint8_t>(offset, column) << std::endl;
+                    if (rr.at<uint8_t>(offset, column) > (min_px * 3)) {
+                                while_pxl++;
+                                white_pxl_offset += offset;
+                    }
+                }
+
+                if (while_pxl <= 7) 
+                    continue;
                 float light_pos = ((float)white_pxl_offset / (float)while_pxl) / (float)rr.rows;
                 Sign traffic_light;
                 traffic_light.area_ = rects_cand[i];
@@ -125,10 +139,14 @@ void* detection_fnc(void* ptr) {
 
                 if (light_pos > 0.20 && light_pos < 0.55) {
                     traffic_light.sign_ = tr_red_s;
-                    rectangle(frame(sign_area), rects_cand[i], cv::Scalar(0, 0, 255), 2);
+                    //if(start_tr_det) std::cout << "START_RED" << std::endl;
+                    //rectangle(frame(sign_area), rects_cand[i], cv::Scalar(0, 0, 255), 2);
                 }else if (light_pos > 0.55 && light_pos < 0.85){
+                    //start_tr.start();
                     traffic_light.sign_ = tr_green_s;
-                    rectangle(frame(sign_area), rects_cand[i], cv::Scalar(0, 255, 0), 2);
+                    //if(start_tr_det) std::cout << "START_GREEN" << std::endl;
+                    start_tr_det = false;
+                    //rectangle(frame(sign_area), rects_cand[i], cv::Scalar(0, 255, 0), 2);
                 }
                 signs_detect.push_back(traffic_light);
             }
@@ -145,7 +163,8 @@ void* detection_fnc(void* ptr) {
 				}
 			}
 		}
-
+		
+		//static bool tr_red = false;
 		for (unsigned int i = 0; i < signs_global.size(); i++) {
 			for (unsigned int j = 0; j < signs_detect.size(); j++) {
 				if (signs_global[i].sign_ == signs_detect[j].sign_) {
