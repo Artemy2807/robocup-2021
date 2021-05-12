@@ -8,17 +8,19 @@ void* loop_fnc(void* ptr) {
     const bool base_direction = true;
     
 #if (__LINE_INCLUDE__ == 1)
-    const uint8_t base_speed = 75;
-#else
-    const uint8_t base_speed = 30;
+	const uint8_t base_speed = 110;
 #endif
-    
+
+#if (defined(__FULL_REACTION__))
+	hold_tr_red = true;
+#endif
+
     while(!(system.close_thr.read())) {
         engine = system.engine.read();
-        engine.angle_ = base_angle;
+            engine.angle_ = base_angle;
         if(!(hold_tr_red)) 
-            engine.speed_ = base_speed;
-        engine.direction_ = base_direction;
+                engine.speed_ = base_speed;
+            engine.direction_ = base_direction;
     
 #if defined(__LINE_INCLUDE__)
         static const float range_integral = 50;
@@ -29,21 +31,22 @@ void* loop_fnc(void* ptr) {
                     kd = 0.0f;
         
 #if (__LINE_INCLUDE__ == 1)
-        kp = 0.2f;
+        kp = 0.1f;
         ki = 0.0f;
-        kd = 0.6f;
+        kd = 0.45f;
 #endif
 
-        Object<Line>* new_line = nullptr;
+        static Object<Line>* new_line = nullptr;
         new_line = system.line.wait(new_line);
 
         if(new_line != nullptr/* && ((new_line->obj->center_) != -1)*/) {
             if(((new_line->obj->center_) != -1)) {
-                static int32_t prev_center = new_line->obj->center_;
-                float error = new_line->obj->set_point_ - new_line->obj->center_,
-                    delta = new_line->obj->center_ - prev_center,
+                //static float prev_error = error;
+                float error = new_line->obj->set_point_ - new_line->obj->center_;
+                static float prev_error = error;
+		float delta = error - prev_error,
                     output = .0f;
-                prev_center = new_line->obj->center_;
+                prev_error = error;
                 
                 output += error * kp;
                 output += delta * kd;
@@ -64,7 +67,7 @@ void* loop_fnc(void* ptr) {
                     timer_reaction;
         static const float k_speed = 2.0;
         static const unsigned long base_reaction_time = 2000;
-        static const unsigned long base_reaction_dist = 10;
+        static const unsigned long base_reaction_dist = 20;
                     
         static std::vector<Sign> signs;
         static std::vector<Holder> holders;
@@ -192,7 +195,7 @@ void* loop_fnc(void* ptr) {
 #endif
         
         system.engine.write(engine);
-        usleep(25000);
+        //usleep(10000);
     }
     return nullptr;
 }
