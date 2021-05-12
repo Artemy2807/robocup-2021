@@ -89,6 +89,8 @@ unsigned long time = 0,
 volatile unsigned long encoder_pulse = 0,
                       encoder_pulse_total = 0;
                       
+const uint8_t min_pwm_motor = 35;
+                      
 
 void setup() {
   Serial.begin(9600);
@@ -128,7 +130,7 @@ void loop() {
     
     reg.input = (float)encoder_pulse / (float)(0.3f * 0.924f);
     encoder_pulse = 0;
-    if(reg.set_point != 0) {
+    if(reg.set_point != 0 && !(reg.output >= min_pwm_motor && reg.input == 0)) {
       reg.output_old = reg.output;
       float error = (float)reg.set_point - reg.input;
       
