@@ -100,7 +100,7 @@ void proc_line(const cv::Mat& frame, int32_t scan, Line& line) {
 	if(center_first == -1 && line.center_ != -1)
         center_first = line.center_;
     
-    if(line.center_ != -1 && abs(line.center_ - center_first) > 150) {
+    if(line.center_ != -1 && abs(line.center_ - center_first) >300) {
         line.center_ = -1;
         line.old_center_ = -1;
     }
@@ -137,19 +137,18 @@ void* navigation_fnc(void* ptr) {
     seen_prev_t.start();
 	while (!(system.close_thr.read())) {
 		obj_cur = system.frame.wait(obj_cur);
-
         if(obj_cur == nullptr)
             continue;
+        
 		cv::Mat& frame = (*(obj_cur->obj));
         
         Object<Line>* new_line = new Object<Line>();
 
 #if (__LINE_INCLUDE__ == 1)
         
-        //for(unsigned int i = 0; i < 2; i++) 
-	proc_line(frame, (scan_row), line);
-	if(line.center_ == -1)
-		line.center_ = ending_center;
+        proc_line(frame, (scan_row), line);
+        if(line.center_ == -1)
+            line.center_ = ending_center;
 #elif (__LINE_INCLUDE__ == 2)
         
         center_first = -1;
@@ -163,24 +162,25 @@ void* navigation_fnc(void* ptr) {
         line.old_center_ = center_first;
 
         line.road_type_ = unknown_r;
+        //std::cout << max_diff_ << " " << min_diff_ << std::endl;
         if(max_diff_ != 0 && min_diff_ != 0) {
-            if(max_diff_ > 300 && max_diff_ > (min_diff_ * 6)) {
-                if(max_row > 445) {
+            if((max_diff_ > 300 && max_diff_ > (min_diff_ * 6)) || (max_diff_ > 330 && min_diff_ < 150)) {
+                //if(max_row > 445) {
                     line.old_center_ = -1;
                     proc_line(frame, max_row - 50, line);
                     line.old_center_ = line.center_;
-                    
                     line.road_type_ = crossroad_r;
                     seen_prev = false;
-                }
+                //}
             }else{
+                //std::cout << first_stop_line << " " << seen_prev << " " << seen_prev_t.millis() << std::endl;
                 seen_prev_t.stop();
-                if(max_diff_ > 100 && max_diff_ > (min_diff_ * 2.5) && (first_stop_line || seen_prev || seen_prev_t.millis() >= 5000)) {
+                if(max_diff_ > 150 && max_diff_ > (min_diff_ * 1.5) && (first_stop_line || seen_prev || seen_prev_t.millis() >= 5000)) {
                     //line.center_ = center_seria;
                     //line.old_center_ = center_seria;
                     if(max_row > 450) {
                         line.old_center_ = -1;
-                        proc_line(frame, max_row - 50, line);
+                        proc_line(frame, max_row - 80, line);
                         
                     }
                     line.road_type_ = stopline_r;
@@ -193,7 +193,7 @@ void* navigation_fnc(void* ptr) {
         if(line.road_type_ == crossroad_r || seen_prev)
             seen_prev_t.start();
 #endif
-	std::cout << line.center_ << std::endl;
+        //std::cout << line.center_ << std::endl;
         *(new_line->obj) = line;
 		system.line.push(new_line);
         obj_cur->free();
